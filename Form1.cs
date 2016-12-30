@@ -29,6 +29,7 @@ namespace CSCOUpdater
 
         bool done = false;
         bool downloading = false;
+        bool update = false;
 
         WebClient client;
 
@@ -169,6 +170,7 @@ namespace CSCOUpdater
                     {
                         button1.Text = "Update";
                         button1.Enabled = true;
+                        update = true;
                     }
                     else
                     {
@@ -237,6 +239,11 @@ namespace CSCOUpdater
             double totalBytes = double.Parse(e.TotalBytesToReceive.ToString());
             double percentage = bytesIn / totalBytes * 100;
 
+            if(percentage > 99.5)
+            {
+                button1.Text = "Installing...";
+            }
+
             progressBar1.Value = int.Parse(Math.Truncate(percentage).ToString());
         }
 
@@ -248,13 +255,10 @@ namespace CSCOUpdater
             }
             else
             {
-
                 try
                 {
                     if (!done)
                     {
-                        button1.Text = "Installing...";
-
                         done = true;
 
                         progressBar1.Maximum = 100;
@@ -289,12 +293,15 @@ namespace CSCOUpdater
 
                         delete_dir(csco_path + "/Temp");
 
-                        foreach (var process in Process.GetProcessesByName("Steam"))
+                        if (!update)
                         {
-                            process.Kill();
+                            foreach (var process in Process.GetProcessesByName("Steam"))
+                            {
+                                process.Kill();
+                            }
                         }
 
-                        label4.Text = Convert.ToString(latest_version);
+                        label3.Text = Convert.ToString(latest_version);
 
                         button1.Text = "Installation Complete";
 
