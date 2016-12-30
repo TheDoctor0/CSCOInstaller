@@ -6,7 +6,7 @@ Steam folder (default "C:\Program Files (x86)\Steam") and click Download.
 Before installation starts, folder is verified if it exists 
 and if it actually is a Steam folder. 
 So you don't have to worry that you will install mod in wrong place. 
-After installation Steam will be automatically closed.
+After installation Steam will be automatically restarted.
 
 Update process is as simple as installation. 
 After you choose a Steam folder installed version is compared 
