@@ -15,6 +15,7 @@ using System.Web;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
+using Microsoft.Win32;
 
 namespace CSCOUpdater
 {
@@ -40,6 +41,17 @@ namespace CSCOUpdater
         private void Form1_Load(object sender, EventArgs e)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-GB");
+
+            RegistryKey regKey = Registry.CurrentUser;
+
+            regKey = regKey.OpenSubKey(@"Software\Valve\Steam");
+
+            if (regKey != null)
+            {
+                string[] steamPath = regKey.GetValue("SourceModInstallPath").ToString().Split(new string[] {@"\steamapps\sourcemods"}, StringSplitOptions.RemoveEmptyEntries);
+
+                textBoxSteam.Text = steamPath[0];
+            }
 
             CheckVersion();
         }
