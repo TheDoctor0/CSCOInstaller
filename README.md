@@ -1,11 +1,13 @@
 CSCO Installer - simple installer and updater for Counter-Strike: Classic Offensive.
 
 All you have to do is download CS:CO Installer and click Download.
+
 Steam installation folder is detected, but please check if it's correct.
 Default directory is "C:\Program Files (x86)\Steam".
 
 Before installation starts, Steam folder is verified if it exists 
 and if it actually is a Steam folder. 
+
 So you don't have to worry that you will install mod in wrong place. 
 After installation Steam will be automatically restarted.
 
