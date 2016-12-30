@@ -231,6 +231,10 @@ namespace CSCOUpdater
                     {
                         foreach (var process in Process.GetProcessesByName("Steam")) process.Kill();
 
+                        MessageBox.Show("Steam is launching.\nCounter-Strike: Classic Offensive will appear in Library.");
+
+                        System.Diagnostics.Process.Start(textBoxSteam.Text + "/Steam.exe");
+
                         button.Text = "Installation Complete";
                     }
                     else button.Text = "Update Complete";
