@@ -87,12 +87,12 @@
             // 
             this.labelVersion.AutoSize = true;
             this.labelVersion.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.labelVersion.Location = new System.Drawing.Point(100, 196);
+            this.labelVersion.Location = new System.Drawing.Point(124, 196);
             this.labelVersion.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelVersion.Name = "labelVersion";
-            this.labelVersion.Size = new System.Drawing.Size(154, 13);
+            this.labelVersion.Size = new System.Drawing.Size(130, 13);
             this.labelVersion.TabIndex = 4;
-            this.labelVersion.Text = "CS:CO Installer v1.0 by O\'Zone";
+            this.labelVersion.Text = "CS:CO Installer by O\'Zone";
             // 
             // textBoxSteam
             // 

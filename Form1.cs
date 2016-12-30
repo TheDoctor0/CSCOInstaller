@@ -226,6 +226,30 @@ namespace CSCOUpdater
                     if (File.Exists(steamDirectory + "/HostMe.txt")) File.Delete(steamDirectory + "/HostMe.txt");
                     if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/ReadMe.txt");
                     if (!File.Exists(steamDirectory + "/csco/version.txt")) File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
+                    if (File.Exists(textBoxSteam.Text + "/maps/workshop")) File.Delete(textBoxSteam.Text + "/maps/workshop");
+
+                    System.IO.DirectoryInfo di = new DirectoryInfo(textBoxSteam.Text + "/userdata");
+
+                    foreach (DirectoryInfo dir in di.GetDirectories())
+                    {
+                        try
+                        {
+                            System.IO.DirectoryInfo dii = new DirectoryInfo(textBoxSteam.Text + "/userdata/" + dir.Name + "/ugc/");
+
+                            foreach (DirectoryInfo dirr in dii.GetDirectories()) dirr.Delete(true);
+
+                            ProcessStartInfo process = new ProcessStartInfo("cmd.exe");
+
+                            process.WorkingDirectory = textBoxSteam.Text + @"\userdata\" + dir.Name + @"\ugc";
+                            process.Arguments = @"/c mklink /J workshop " + "\"" + textBoxSteam.Text + @"\steamapps\common\Counter-Strike Global Offensive\csgo\maps\workshop" + "\"";
+
+                            Process.Start(process);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
 
                     if (!update)
                     {
