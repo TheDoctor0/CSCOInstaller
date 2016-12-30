@@ -10,9 +10,7 @@ using System.Windows.Forms;
 using System.Net;
 using System.IO;
 using System.IO.Compression;
-
 using System.Reflection;
-
 using System.Web;
 using System.Diagnostics;
 using System.Globalization;
@@ -22,209 +20,170 @@ namespace CSCOUpdater
 {
     public partial class Form1 : Form
     {
-        string v_url = "http://cs-reload.pl/csco/";
+        string versionUrl = "http://cs-reload.pl/csco/";
+        string updateUrl = "";
+        string steamDirectory = "";
 
-        double latest_version = 0.0;
-        double installed_version = 0.0;
+        double latestVersion = 0.0;
+        double installedVersion = 0.0;
 
-        bool done = false;
         bool downloading = false;
         bool update = false;
 
         WebClient client;
 
-        DialogResult r;
-
-        string latest_url = "";
-        string csco_path = "";
-
         public Form1()
         {
-            Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-GB");
-
             InitializeComponent();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-GB");
+
             CheckVersion();
+        }
+
+        protected override void OnPaintBackground(PaintEventArgs p)
+        {
+            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+            base.OnPaintBackground(p);
         }
 
         private void CheckVersion()
         {
-            this.ActiveControl = label1;
+            this.ActiveControl = labelVersion;
 
-            latest_version = 0.0;
-            installed_version = 0.0;
+            latestVersion = 0.0;
+            installedVersion = 0.0;
 
-            string v_file = "NULL";
-            string local_v_file = "NULL";
+            string versionFile = "NULL";
 
-            button1.Enabled = false;
-
-            csco_path = textBox1.Text + "/steamapps/sourcemods";
+            steamDirectory = textBoxSteam.Text + "/steamapps/sourcemods";
 
             try
             {
-                using (System.Net.WebClient client = new System.Net.WebClient())
-                {
-                    v_file = client.DownloadString(v_url);
-                }
+                using (System.Net.WebClient client = new System.Net.WebClient()) versionFile = client.DownloadString(versionUrl);
             }
             catch (Exception)
             {
                 MessageBox.Show("Error! Unable to get version file.\nCheck your internet connection!");
             }
 
-            if (v_file != "NULL")
+            if (versionFile != "NULL")
             {
-                latest_version = 0.0;
+                string temp = "";
 
-                string buff = "";
-
-                foreach (char c in v_file)
+                foreach (char c in versionFile)
                 {
                     if (c == ' ')
                     {
-                        break;
+                        latestVersion = Convert.ToDouble(temp);
+
+                        temp = "";
                     }
-                    else
-                    {
-                        buff += c;
-                    }
+                    else temp += c;
                 }
 
-                latest_version = Convert.ToDouble(buff);
+                updateUrl = temp;
 
-                buff = "";
-
-                bool reading = false;
-
-                foreach (char c in v_file)
-                {
-                    if (!reading)
-                    {
-                        if (c == ' ')
-                        {
-                            reading = true;
-                        }
-                    }
-                    else
-                    {
-                        buff += c;
-                    }
-                }
-
-                latest_url = buff;
+                if (!RemoteFileExists(updateUrl)) updateUrl = "";
             }
 
-            if (Directory.Exists(csco_path + "/csco"))
+            if (Directory.Exists(steamDirectory + "/csco"))
             {
-
                 try
                 {
-                    local_v_file = File.ReadAllText(csco_path + "/csco/version.txt");
-                    installed_version = Convert.ToDouble(local_v_file);
+                    string localVersionFile = File.ReadAllText(steamDirectory + "/csco/version.txt");
+
+                    installedVersion = Convert.ToDouble(localVersionFile);
+
+                    labelInstalled.Text = installedVersion.ToString("0.0");
                 }
                 catch (Exception)
                 {
 
-                    r = MessageBox.Show("File version.txt not found. Do you have the latest version?",
-                        "Error", MessageBoxButtons.YesNo);
+                    DialogResult r = MessageBox.Show("CS:CO installed, but version.txt not found.\nDo you have the latest version?", "Error",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1);
 
                     if (r == DialogResult.Yes)
                     {
-                        File.WriteAllText(csco_path + "/csco/version.txt", "" + latest_version);
+                        File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
 
-                        installed_version = latest_version;
+                        installedVersion = latestVersion;
+
+                        labelInstalled.Text = installedVersion.ToString("0.0");
                     }
                     else
                     {
-                        label3.Text = "Unknown";
-                        installed_version = -0.1;
+                        labelInstalled.Text = "Unknown";
+
+                        installedVersion = -1.0;
                     }
                 }
             }
+            else labelInstalled.Text = "None";
 
-            if (installed_version > 0.0)
-            {
-                label3.Text = Convert.ToString(installed_version);
-            } 
-            else if (installed_version == 0.0)
-            {
-                label3.Text = "None";
-            }
+            labelLatest.Text = latestVersion.ToString("0.0");
 
-            label4.Text = Convert.ToString(latest_version);
-
-            if (latest_url != "")
+            if (updateUrl != "")
             {
-                if (!Directory.Exists(csco_path + "/csco"))
-                {
-                    button1.Text = "Download";
-                    button1.Enabled = true;
-                }
+                if (!Directory.Exists(steamDirectory + "/csco")) button.Text = "Download";
                 else
                 {
-                    if (installed_version < latest_version)
+                    if (installedVersion < latestVersion)
                     {
-                        button1.Text = "Update";
-                        button1.Enabled = true;
+                        button.Text = "Update";
+
                         update = true;
                     }
                     else
                     {
-                        button1.Text = "No Update Required";
-                        button1.Enabled = false;
+                        button.Text = "No Update Required";
+
+                        button.Enabled = false;
                     }
                 }
             }
             else
             {
-                button1.Enabled = false;
-                button1.Text = "Update Not Possible!";
+                button.Text = "Update Not Possible!";
+
+                button.Enabled = false;
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (File.Exists(textBox1.Text + "/Steam.exe"))
+            if (File.Exists(textBoxSteam.Text + "/Steam.exe"))
             {
-                csco_path = textBox1.Text + "/steamapps/sourcemods";
+                steamDirectory = textBoxSteam.Text + "/steamapps/sourcemods";
 
-                IProgress<double> progress = new Progress<double>(b => progressBar1.Value = (int)b);
+                IProgress<double> progress = new Progress<double>(b => progressBar.Value = (int)b);
 
-                if (!done && button1.Enabled)
+                DeleteDir(steamDirectory + "/Temp");
+
+                Directory.CreateDirectory(steamDirectory + "/Temp");
+
+                try
                 {
-                    button1.Text = "Downloading...";
+                    client = new WebClient();
 
-                    button1.Enabled = false;
+                    client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
+                    client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
+                    client.DownloadFileAsync(new Uri(updateUrl), steamDirectory + "/Temp/csco.zip");
 
-                    textBox1.Enabled = false;
+                    button.Text = "Downloading...";
+
+                    button.Enabled = false;
+
+                    textBoxSteam.Enabled = false;
 
                     downloading = true;
-
-                    delete_dir(csco_path + "/Temp");
-
-                    Directory.CreateDirectory(csco_path + "/Temp");
-
-                    try
-                    {
-                        client = new WebClient();
-                        client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
-                        client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
-                        client.DownloadFileAsync(new Uri(latest_url), csco_path + "/Temp/csco.zip");
-                    }
-                    catch (Exception ee)
-                    {
-                        MessageBox.Show("Error: " + ee.Message);
-                        done = true;
-                    }
                 }
-                else
+                catch (Exception ee)
                 {
-                    button1.Text = "Update In Progress!";
-                    button1.Enabled = false;
+                    MessageBox.Show("Error: " + ee.Message);
                 }
             }
             else
@@ -235,78 +194,50 @@ namespace CSCOUpdater
 
         void client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            double bytesIn = double.Parse(e.BytesReceived.ToString());
-            double totalBytes = double.Parse(e.TotalBytesToReceive.ToString());
-            double percentage = bytesIn / totalBytes * 100;
+            double percentage = double.Parse(e.BytesReceived.ToString()) / double.Parse(e.TotalBytesToReceive.ToString()) * 100;
 
-            if(percentage > 99.5)
-            {
-                button1.Text = "Installing...";
-            }
+            if (percentage >= 99.9) button.Text = "Installing...";
+            else button.Text = "Downloading... " + Convert.ToString(Math.Round(percentage)) + "%";
 
-            progressBar1.Value = int.Parse(Math.Truncate(percentage).ToString());
+            progressBar.Value = int.Parse(Math.Truncate(percentage).ToString());
         }
 
         private void client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
-            if (e.Cancelled)
-            {
-                delete_dir(csco_path + "/Temp");
-            }
+            if (e.Error != null) button.Text = "Downloading error!";
+            else if (e.Cancelled) DeleteDir(steamDirectory + "/Temp");
             else
             {
                 try
                 {
-                    if (!done)
+                    DeleteDir(steamDirectory + "/csco");
+
+                    try
                     {
-                        done = true;
-
-                        progressBar1.Maximum = 100;
-
-                        progressBar1.Value = 100;
-
-                        delete_dir(csco_path + "/csco");
-
-                        try
-                        {
-                            ZipFile.ExtractToDirectory(csco_path + "/Temp/csco.zip", csco_path + "/");
-                        }
-                        catch (Exception ee)
-                        {
-                            MessageBox.Show("Error: " + ee.Message);
-                        }
-
-                        if (File.Exists(csco_path + "/HostMe.txt"))
-                        {
-                            File.Delete(csco_path + "/HostMe.txt");
-                        }
-
-                        if (File.Exists(csco_path + "/ReadMe.txt"))
-                        {
-                            File.Delete(csco_path + "/ReadMe.txt");
-                        }
-
-                        if (!File.Exists(csco_path + "/csco/version.txt"))
-                        {
-                            File.WriteAllText(csco_path + "/csco/version.txt", "" + latest_version);
-                        }
-
-                        delete_dir(csco_path + "/Temp");
-
-                        if (!update)
-                        {
-                            foreach (var process in Process.GetProcessesByName("Steam"))
-                            {
-                                process.Kill();
-                            }
-                        }
-
-                        label3.Text = Convert.ToString(latest_version);
-
-                        button1.Text = "Installation Complete";
-
-                        downloading = false;
+                        ZipFile.ExtractToDirectory(steamDirectory + "/Temp/csco.zip", steamDirectory + "/");
                     }
+                    catch (Exception ee)
+                    {
+                        MessageBox.Show("Error: " + ee.Message);
+                    }
+
+                    DeleteDir(steamDirectory + "/Temp");
+
+                    if (File.Exists(steamDirectory + "/HostMe.txt")) File.Delete(steamDirectory + "/HostMe.txt");
+                    if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/ReadMe.txt");
+                    if (!File.Exists(steamDirectory + "/csco/version.txt")) File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
+
+                    if (!update)
+                    {
+                        foreach (var process in Process.GetProcessesByName("Steam")) process.Kill();
+
+                        button.Text = "Installation Complete";
+                    }
+                    else button.Text = "Update Complete";
+
+                    labelInstalled.Text = latestVersion.ToString("0.0");
+
+                    downloading = false;
                 }
                 catch (Exception ee)
                 {
@@ -322,29 +253,23 @@ namespace CSCOUpdater
 
         private void textBox1_Click(object sender, EventArgs e)
         {
-            DialogResult result = folderBrowserDialog1.ShowDialog();
+            folderBrowser.ShowDialog();
 
-            if (!string.IsNullOrWhiteSpace(folderBrowserDialog1.SelectedPath))
-            {
-                textBox1.Text = folderBrowserDialog1.SelectedPath;
-            }
+            if (!string.IsNullOrWhiteSpace(folderBrowser.SelectedPath)) textBoxSteam.Text = folderBrowser.SelectedPath;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (downloading)
             {
-                var res = MessageBox.Show(this, "Downloading in progress. You want to quit?", "Exit",
+                DialogResult result = MessageBox.Show(this, "Downloading in progress. You want to quit?", "Exit",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
 
-                if (res == DialogResult.Yes)
-                {
-                    client.CancelAsync();
-                }
+                if (result == DialogResult.Yes) client.CancelAsync();
             }
         }
 
-        public void delete_dir(string path)
+        public void DeleteDir(string path)
         {
             if (Directory.Exists(path))
             {
@@ -352,24 +277,36 @@ namespace CSCOUpdater
                 {
                     string[] fileCollection = Directory.GetFiles(path);
 
-                    foreach (String file in fileCollection)
-                    {
-                        File.SetAttributes(file, FileAttributes.Normal);
-                    }
+                    foreach (String file in fileCollection) File.SetAttributes(file, FileAttributes.Normal);
                 }
 
                 System.IO.DirectoryInfo di = new DirectoryInfo(path);
 
-                foreach (FileInfo file in di.GetFiles())
-                {
-                    file.Delete();
-                }
-                foreach (DirectoryInfo dir in di.GetDirectories())
-                {
-                    dir.Delete(true);
-                }
+                foreach (FileInfo file in di.GetFiles()) file.Delete();
+
+                foreach (DirectoryInfo dir in di.GetDirectories()) dir.Delete(true);
 
                 Directory.Delete(path);
+            }
+        }
+
+        private bool RemoteFileExists(string url)
+        {
+            try
+            {
+                HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+
+                request.Method = "HEAD";
+
+                HttpWebResponse response = request.GetResponse() as HttpWebResponse;
+
+                response.Close();
+
+                return (response.StatusCode == HttpStatusCode.OK);
+            }
+            catch
+            {
+                return false;
             }
         }
     }
