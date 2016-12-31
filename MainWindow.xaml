@@ -1,0 +1,35 @@
+﻿<Controls:MetroWindow
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="CSCOInstaller.MainWindow"
+                      Title="CS:CO Installer"
+                      Height="263.946"
+                      Width="265.732" Icon="csco.ico" Background="#FFE0E0E0" Closing="Window_Closing" Loaded="Window_Load">
+    <Grid Margin="0,0,2,0">
+        <GroupBox x:Name="groupBox" Header="Version" Margin="9,8,9,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Height="58">
+            <GroupBox.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="0.163"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </GroupBox.RenderTransform>
+            <Label x:Name="labelInstalled" Content="1.0" HorizontalAlignment="Left" Height="24" Margin="74,-4,0,-1" VerticalAlignment="Top" Width="63"/>
+        </GroupBox>
+        <ProgressBar x:Name="progressBar" Margin="10,187,10,0" VerticalAlignment="Top" Height="24"/>
+        <TextBox x:Name="textBoxSteam" Height="23" Margin="10,101,10,0" TextWrapping="Wrap" Text="C:\Program Files (x86)\Steam" VerticalAlignment="Top" PreviewMouseDown="textBox_Click"/>
+        <Button x:Name="button" Content="DOWNLOAD" Margin="10,0,10,60" VerticalAlignment="Bottom" Height="29" FontSize="12" Background="#CC42BCF0" BorderBrush="#CC6FC8EE" Click="button_Click">
+            <Button.Foreground>
+                <SolidColorBrush Color="#FF212121"/>
+            </Button.Foreground>
+        </Button>
+        <TextBlock x:Name="textBlock3" Height="15" Margin="148,0,0,2" TextWrapping="Wrap" Text="CS:CO Installer by O'Zone" VerticalAlignment="Bottom" IsEnabled="False" FontSize="9.333" Foreground="#FF636363"/>
+        <Label x:Name="label1" Content="Installed:" HorizontalAlignment="Left" Margin="38,37,0,0" VerticalAlignment="Top" Width="63" Height="27"/>
+        <Label x:Name="labelInstalledVersion" Content="Latest:" HorizontalAlignment="Left" Margin="148,37,0,0" VerticalAlignment="Top" Height="25" Width="45"/>
+        <Label x:Name="labelLatestVersion" Content="Steam folder:&#xD;&#xA;" HorizontalAlignment="Left" Margin="10,76,0,0" VerticalAlignment="Top" Height="25" FontSize="13.333" FontFamily="Segoe UI Semibold"/>
+        <Label x:Name="labelLatest" Content="1.0" HorizontalAlignment="Left" Margin="186,37,0,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Controls:MetroWindow>
