@@ -56,18 +56,14 @@ namespace CSCOUpdater
             CheckVersion();
         }
 
-        protected override void OnPaintBackground(PaintEventArgs p)
-        {
-            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
-            base.OnPaintBackground(p);
-        }
-
         private void CheckVersion()
         {
             this.ActiveControl = labelVersion;
 
             latestVersion = 0.0;
             installedVersion = 0.0;
+
+            button.Enabled = true;
 
             string versionFile = "NULL";
 

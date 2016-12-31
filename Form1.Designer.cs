@@ -119,7 +119,7 @@
             this.groupBoxVersion.Controls.Add(this.labelInstalled);
             this.groupBoxVersion.Controls.Add(this.labelLatestVersion);
             this.groupBoxVersion.Controls.Add(this.labelInstalledVersion);
-            this.groupBoxVersion.Location = new System.Drawing.Point(13, 13);
+            this.groupBoxVersion.Location = new System.Drawing.Point(15, 12);
             this.groupBoxVersion.Name = "groupBoxVersion";
             this.groupBoxVersion.Size = new System.Drawing.Size(241, 34);
             this.groupBoxVersion.TabIndex = 7;
@@ -146,7 +146,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(271, 218);
+            this.ClientSize = new System.Drawing.Size(266, 216);
             this.Controls.Add(this.groupBoxVersion);
             this.Controls.Add(this.labelSteam);
             this.Controls.Add(this.textBoxSteam);
