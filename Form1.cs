@@ -1,23 +1,17 @@
 ﻿using System;
-using System.Windows;
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
+using System.ComponentModel;
+using System.Windows.Forms;
 using System.Net;
-using Microsoft.Win32;
 using System.IO;
 using System.IO.Compression;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Windows.Forms;
-using System.Threading;
 using System.Globalization;
+using System.Threading;
+using Microsoft.Win32;
 
-namespace CSCOInstaller
+namespace CSCOUpdater
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : MetroWindow
+    public partial class Form1 : Form
     {
         string versionUrl = "http://cs-reload.pl/csco/";
         string updateUrl = "";
@@ -31,12 +25,12 @@ namespace CSCOInstaller
 
         WebClient client;
 
-        public MainWindow()
+        public Form1()
         {
             InitializeComponent();
         }
 
-        private void Window_Load(object sender, RoutedEventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-GB");
 
@@ -46,7 +40,7 @@ namespace CSCOInstaller
 
             if (regKey != null)
             {
-                string[] steamPath = regKey.GetValue("SourceModInstallPath").ToString().Split(new string[] { @"\steamapps\sourcemods" }, StringSplitOptions.RemoveEmptyEntries);
+                string[] steamPath = regKey.GetValue("SourceModInstallPath").ToString().Split(new string[] {@"\steamapps\sourcemods"}, StringSplitOptions.RemoveEmptyEntries);
 
                 textBoxSteam.Text = steamPath[0];
             }
@@ -56,22 +50,24 @@ namespace CSCOInstaller
 
         private void CheckVersion()
         {
+            this.ActiveControl = labelVersion;
+
             latestVersion = 0.0;
             installedVersion = 0.0;
 
-            button.IsEnabled = true;
+            button.Enabled = true;
 
             string versionFile = "NULL";
 
-            steamDirectory = textBoxSteam.Text + @"\steamapps\sourcemods";
+            steamDirectory = textBoxSteam.Text + "/steamapps/sourcemods";
 
             try
             {
-                using (WebClient client = new WebClient()) versionFile = client.DownloadString(versionUrl);
+                using (System.Net.WebClient client = new System.Net.WebClient()) versionFile = client.DownloadString(versionUrl);
             }
             catch (Exception)
             {
-                System.Windows.MessageBox.Show("Unable to get version file.\nCheck your internet connection!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Unable to get version file.\nCheck your internet connection!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             if (versionFile != "NULL")
@@ -94,79 +90,79 @@ namespace CSCOInstaller
                 if (!RemoteFileExists(updateUrl)) updateUrl = "";
             }
 
-            if (Directory.Exists(steamDirectory + @"\csco"))
+            if (Directory.Exists(steamDirectory + "/csco"))
             {
                 try
                 {
-                    string localVersionFile = File.ReadAllText(steamDirectory + @"\csco\version.txt");
+                    string localVersionFile = File.ReadAllText(steamDirectory + "/csco/version.txt");
 
                     installedVersion = Convert.ToDouble(localVersionFile);
 
-                    labelInstalled.Content = installedVersion.ToString("0.0");
+                    labelInstalled.Text = installedVersion.ToString("0.0");
                 }
                 catch (Exception)
                 {
-                    MessageBoxResult result = System.Windows.MessageBox.Show("CS:CO installed, but version.txt not found.\nDo you have the latest version?", "Version", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-                    if (result == MessageBoxResult.Yes)
+                    DialogResult r = MessageBox.Show("CS:CO installed, but version.txt not found.\nDo you have the latest version?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+
+                    if (r == DialogResult.Yes)
                     {
-                        File.WriteAllText(steamDirectory + @"\csco\version.txt", "" + latestVersion);
+                        File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
 
                         installedVersion = latestVersion;
 
-                        labelInstalled.Content = installedVersion.ToString("0.0");
+                        labelInstalled.Text = installedVersion.ToString("0.0");
                     }
                     else
                     {
-                        labelInstalled.Content = "Unknown";
+                        labelInstalled.Text = "Unknown";
 
                         installedVersion = -1.0;
                     }
                 }
             }
-            else labelInstalled.Content = "None";
+            else labelInstalled.Text = "None";
 
-            labelLatest.Content = latestVersion.ToString("0.0");
+            labelLatest.Text = latestVersion.ToString("0.0");
 
             if (updateUrl != "")
             {
-                if (!Directory.Exists(steamDirectory + @"\csco")) button.Content = "Download";
+                if (!Directory.Exists(steamDirectory + "/csco")) button.Text = "Download";
                 else
                 {
                     if (installedVersion < latestVersion)
                     {
-                        button.Content = "Update";
+                        button.Text = "Update";
 
                         update = true;
                     }
                     else
                     {
-                        button.Content = "No Update Required";
+                        button.Text = "No Update Required";
 
-                        button.IsEnabled = false;
+                        button.Enabled = false;
                     }
                 }
             }
             else
             {
-                button.Content = "Update Not Possible!";
+                button.Text = "Update Not Possible!";
 
-                button.IsEnabled = false;
+                button.Enabled = false;
             }
         }
 
-
-        private void button_Click(object sender, RoutedEventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-            if (File.Exists(textBoxSteam.Text + @"\Steam.exe"))
+            if (File.Exists(textBoxSteam.Text + "/Steam.exe"))
             {
-                steamDirectory = textBoxSteam.Text + @"\steamapps\sourcemods";
+                steamDirectory = textBoxSteam.Text + "/steamapps/sourcemods";
 
                 IProgress<double> progress = new Progress<double>(b => progressBar.Value = (int)b);
 
-                DeleteDir(steamDirectory + @"\Temp");
+                DeleteDir(steamDirectory + "/Temp");
 
-                Directory.CreateDirectory(steamDirectory + @"\Temp");
+                Directory.CreateDirectory(steamDirectory + "/Temp");
 
                 try
                 {
@@ -176,22 +172,22 @@ namespace CSCOInstaller
                     client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
                     client.DownloadFileAsync(new Uri(updateUrl), steamDirectory + "/Temp/csco.zip");
 
-                    button.Content = "Downloading...";
+                    button.Text = "Downloading...";
 
-                    button.IsEnabled = false;
+                    button.Enabled = false;
 
-                    textBoxSteam.IsEnabled = false;
+                    textBoxSteam.Enabled = false;
 
                     downloading = true;
                 }
                 catch (Exception ee)
                 {
-                    System.Windows.MessageBox.Show(ee.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(ee.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             else
             {
-                System.Windows.MessageBox.Show("Check path to your Steam directory!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Check path to your Steam directory!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -199,15 +195,15 @@ namespace CSCOInstaller
         {
             double percentage = double.Parse(e.BytesReceived.ToString()) / double.Parse(e.TotalBytesToReceive.ToString()) * 100;
 
-            if (percentage >= 99.9) button.Content = "Installing...";
-            else button.Content = "Downloading... " + Convert.ToString(Math.Round(percentage)) + "%";
+            if (percentage >= 99.9) button.Text = "Installing...";
+            else button.Text = "Downloading... " + Convert.ToString(Math.Round(percentage)) + "%";
 
             progressBar.Value = int.Parse(Math.Truncate(percentage).ToString());
         }
 
         private void client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
-            if (e.Error != null) button.Content = "Downloading error!";
+            if (e.Error != null) button.Text = "Downloading error!";
             else if (e.Cancelled) DeleteDir(steamDirectory + "/Temp");
             else
             {
@@ -221,7 +217,7 @@ namespace CSCOInstaller
                     }
                     catch (Exception ee)
                     {
-                        System.Windows.MessageBox.Show(ee.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(ee.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
 
                     DeleteDir(steamDirectory + "/Temp");
@@ -258,46 +254,45 @@ namespace CSCOInstaller
                     {
                         foreach (var process in Process.GetProcessesByName("Steam")) process.Kill();
 
-                        System.Windows.MessageBox.Show("Installation complete, now Steam is launching.\nCounter-Strike: Classic Offensive will appear in Library.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("Installation complete, now Steam is launching.\nCounter-Strike: Classic Offensive will appear in Library.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                         System.Diagnostics.Process.Start(textBoxSteam.Text + "/Steam.exe");
 
-                        button.Content = "Installation Complete";
+                        button.Text = "Installation Complete";
                     }
-                    else button.Content = "Update Complete";
+                    else button.Text = "Update Complete";
 
-                    labelInstalled.Content = latestVersion.ToString("0.0");
+                    labelInstalled.Text = latestVersion.ToString("0.0");
 
                     downloading = false;
                 }
                 catch (Exception ee)
                 {
-                    System.Windows.MessageBox.Show(ee.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(ee.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
-        private void textBox_Click(object sender, EventArgs e)
+        private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            FolderBrowserDialog folderBrowser = new System.Windows.Forms.FolderBrowserDialog();
-
-            folderBrowser.ShowDialog();
-
-            if (!string.IsNullOrWhiteSpace(folderBrowser.SelectedPath))
-            {
-                textBoxSteam.Text = folderBrowser.SelectedPath;
-                CheckVersion();
-            }
+            CheckVersion();
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void textBox1_Click(object sender, EventArgs e)
+        {
+            folderBrowser.ShowDialog();
+
+            if (!string.IsNullOrWhiteSpace(folderBrowser.SelectedPath)) textBoxSteam.Text = folderBrowser.SelectedPath;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (downloading)
             {
-                MessageBoxResult result = System.Windows.MessageBox.Show("Downloading in progress. You want to quit?", "Exit",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                DialogResult result = MessageBox.Show(this, "Downloading in progress. Do you want to quit?", "Exit",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
 
-                if (result == MessageBoxResult.Yes) client.CancelAsync();
+                if (result == DialogResult.Yes) client.CancelAsync();
             }
         }
 
