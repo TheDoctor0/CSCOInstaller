@@ -101,7 +101,7 @@ namespace CSCOInstaller
 
                     installedVersion = Convert.ToDouble(localVersionFile);
 
-                    labelInstalled.Content = installedVersion.ToString("0.0");
+                    labelInstalled.Content = installedVersion.ToString("0.00");
                 }
                 catch (Exception)
                 {
@@ -113,7 +113,7 @@ namespace CSCOInstaller
 
                         installedVersion = latestVersion;
 
-                        labelInstalled.Content = installedVersion.ToString("0.0");
+                        labelInstalled.Content = installedVersion.ToString("0.00");
                     }
                     else
                     {
@@ -125,7 +125,7 @@ namespace CSCOInstaller
             }
             else labelInstalled.Content = "None";
 
-            labelLatest.Content = latestVersion.ToString("0.0");
+            labelLatest.Content = latestVersion.ToString("0.00");
 
             if (updateUrl != "")
             {
@@ -227,8 +227,9 @@ namespace CSCOInstaller
 
                     if (File.Exists(steamDirectory + "/HostMe.txt")) File.Delete(steamDirectory + "/HostMe.txt");
                     if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/ReadMe.txt");
-                    if (!File.Exists(steamDirectory + "/csco/version.txt")) File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
                     if (File.Exists(textBoxSteam.Text + "/maps/workshop")) File.Delete(textBoxSteam.Text + "/maps/workshop");
+
+                    File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
 
                     System.IO.DirectoryInfo di = new DirectoryInfo(textBoxSteam.Text + "/userdata");
 
@@ -265,7 +266,7 @@ namespace CSCOInstaller
                     }
                     else button.Content = "Update Complete";
 
-                    labelInstalled.Content = latestVersion.ToString("0.0");
+                    labelInstalled.Content = latestVersion.ToString("0.00");
 
                     downloading = false;
                 }
