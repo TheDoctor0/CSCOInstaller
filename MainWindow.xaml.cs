@@ -18,13 +18,13 @@ namespace CSCOInstaller
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        string versionUrl = "http://cs-reload.pl/csco/";
+        string versionUrl = "http://cs-reload.pl/csco/version.txt";
         string updateUrl = "";
         string steamDirectory = "";
 
         double latestVersion = 0.0;
         double installedVersion = 0.0;
-        double localVersion = 1.41;
+        double localVersion = 1.42;
 
         bool downloading = false;
         bool update = false;
@@ -80,21 +80,30 @@ namespace CSCOInstaller
             if (versionFile != "NULL")
             {
                 string temp = "";
+                double tempVersion = 0.0;
 
                 foreach (char c in versionFile)
                 {
-                    if (c == ' ')
+                    if (temp.Contains(".zip"))
                     {
-                        latestVersion = Convert.ToDouble(temp);
+                        if (RemoteFileExists(temp) && tempVersion > latestVersion)
+                        {
+                            updateUrl = temp;
+                            latestVersion = tempVersion;
+                        }
+
+                        temp = "";
+
+                        continue;
+                    }
+                    else if (c == ' ')
+                    {
+                        tempVersion = Convert.ToDouble(temp);
 
                         temp = "";
                     }
                     else temp += c;
                 }
-
-                updateUrl = temp;
-
-                if (!RemoteFileExists(updateUrl)) updateUrl = "";
             }
 
             if (Directory.Exists(steamDirectory + @"\csco"))
