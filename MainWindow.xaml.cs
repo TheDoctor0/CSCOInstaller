@@ -25,7 +25,7 @@ namespace CSCOInstaller
 
         double latestVersion = 0.0;
         double installedVersion = 0.0;
-        double localVersion = 1.32;
+        double localVersion = 1.4;
 
         bool downloading = false;
         bool update = false;
@@ -400,6 +400,9 @@ namespace CSCOInstaller
                     updateClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_UpdateProgressChanged);
                     updateClient.DownloadFileAsync(new Uri(updateUrl), file.DirectoryName + "\\" + file.Name);
 
+                    labelLatest.Content = updateVersion.ToString("0.00");
+                    labelInstalled.Content = localVersion.ToString("0.00");
+
                     button.Content = "Installer update in progress...";
 
                     button.IsEnabled = false;
@@ -427,13 +430,13 @@ namespace CSCOInstaller
         {
             System.IO.FileInfo file = new System.IO.FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
-            System.Diagnostics.Process.Start(file.DirectoryName + "/" + file.Name);
-
             using (StreamWriter sw = File.CreateText("updater.bat"))
             {
-                sw.WriteLine("delete " + file.Name + ".old / y");
-                sw.WriteLine("delete updater.bat /y");
+                sw.WriteLine("del " + @"""" + file.Name + ".old");
+                sw.WriteLine("del updater.bat");
             }
+
+            System.Diagnostics.Process.Start(file.DirectoryName + "/" + file.Name);
 
             System.Windows.Application.Current.Shutdown();
         }
