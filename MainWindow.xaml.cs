@@ -24,7 +24,7 @@ namespace CSCOInstaller
 
         double latestVersion = 0.0;
         double installedVersion = 0.0;
-        double localVersion = 1.4;
+        double localVersion = 1.41;
 
         bool downloading = false;
         bool update = false;
@@ -259,6 +259,13 @@ namespace CSCOInstaller
                             continue;
                         }
                     }
+
+                    ProcessStartInfo processs = new ProcessStartInfo("cmd.exe");
+
+                    processs.WorkingDirectory = steamDirectory + @"\csco\maps";
+                    processs.Arguments = @"/c mklink /J workshop " + "\"" + textBoxSteam.Text + @"\steamapps\common\Counter-Strike Global Offensive\csgo\maps\workshop" + "\"";
+
+                    Process.Start(processs);
 
                     if (!update)
                     {
