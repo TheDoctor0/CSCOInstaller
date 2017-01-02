@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Threading;
 using System.Globalization;
+using System.Reflection;
 
 namespace CSCOInstaller
 {
@@ -24,6 +25,7 @@ namespace CSCOInstaller
 
         double latestVersion = 0.0;
         double installedVersion = 0.0;
+        double localVersion = 1.32;
 
         bool downloading = false;
         bool update = false;
@@ -39,18 +41,21 @@ namespace CSCOInstaller
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-GB");
 
-            RegistryKey regKey = Registry.CurrentUser;
-
-            regKey = regKey.OpenSubKey(@"Software\Valve\Steam");
-
-            if (regKey != null)
+            if (!CheckUpdates())
             {
-                string[] steamPath = regKey.GetValue("SourceModInstallPath").ToString().Split(new string[] { @"\steamapps\sourcemods" }, StringSplitOptions.RemoveEmptyEntries);
+                RegistryKey regKey = Registry.CurrentUser;
 
-                textBoxSteam.Text = steamPath[0];
+                regKey = regKey.OpenSubKey(@"Software\Valve\Steam");
+
+                if (regKey != null)
+                {
+                    string[] steamPath = regKey.GetValue("SourceModInstallPath").ToString().Split(new string[] { @"\steamapps\sourcemods" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    textBoxSteam.Text = steamPath[0];
+                }
+
+                CheckVersion();
             }
-
-            CheckVersion();
         }
 
         private void CheckVersion()
@@ -340,6 +345,97 @@ namespace CSCOInstaller
             {
                 return false;
             }
+        }
+
+        private bool CheckUpdates()
+        {
+            string updateUrl = "https://raw.githubusercontent.com/OZone998/CSCOInstaller/master/version.txt";
+            string updateFile = "NULL";
+
+            double updateVersion = 0.0;
+
+            if(File.Exists("updater.bat")) System.Diagnostics.Process.Start("updater.bat");
+
+            try
+            {
+                using (WebClient client = new WebClient()) updateFile = client.DownloadString(updateUrl);
+            }
+            catch (Exception)
+            {
+                System.Windows.MessageBox.Show("Unable to get version file.\nCheck your internet connection!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            if (updateFile != "NULL")
+            {
+                string temp = "";
+
+                foreach (char c in updateFile)
+                {
+                    if (c == ' ')
+                    {
+                        updateVersion = Convert.ToDouble(temp);
+
+                        temp = "";
+                    }
+                    else temp += c;
+                }
+
+                updateUrl = temp;
+            }
+
+            if (updateVersion > localVersion)
+            {
+                MessageBoxResult result = System.Windows.MessageBox.Show("New Installer version is available. Do you want to update?", "Update",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    System.IO.FileInfo file = new System.IO.FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+                    System.IO.File.Move(file.FullName, file.DirectoryName + "\\" + file.Name + ".old");
+
+                    WebClient updateClient = new WebClient();
+
+                    updateClient.DownloadFileCompleted += new AsyncCompletedEventHandler(client_UpdateFileCompleted);
+                    updateClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_UpdateProgressChanged);
+                    updateClient.DownloadFileAsync(new Uri(updateUrl), file.DirectoryName + "\\" + file.Name);
+
+                    button.Content = "Installer update in progress...";
+
+                    button.IsEnabled = false;
+
+                    textBoxSteam.IsEnabled = false;
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        void client_UpdateProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            double percentage = double.Parse(e.BytesReceived.ToString()) / double.Parse(e.TotalBytesToReceive.ToString()) * 100;
+
+            if (percentage >= 99.9) button.Content = "Installing...";
+            else button.Content = "Downloading... " + Convert.ToString(Math.Round(percentage)) + "%";
+
+            progressBar.Value = int.Parse(Math.Truncate(percentage).ToString());
+        }
+
+        private void client_UpdateFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            System.IO.FileInfo file = new System.IO.FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            System.Diagnostics.Process.Start(file.DirectoryName + "/" + file.Name);
+
+            using (StreamWriter sw = File.CreateText("updater.bat"))
+            {
+                sw.WriteLine("delete " + file.Name + ".old / y");
+                sw.WriteLine("delete updater.bat /y");
+            }
+
+            System.Windows.Application.Current.Shutdown();
         }
     }
 }
