@@ -1,1 +1,1 @@
-1.4 https://github.com/OZone998/CSCOInstaller/releases/download/1.4/CSCO.Installer.exe
+1.41 https://github.com/OZone998/CSCOInstaller/releases/download/1.41/CSCO.Installer.exe

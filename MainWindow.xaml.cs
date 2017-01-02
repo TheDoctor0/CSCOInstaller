@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Threading;
 using System.Globalization;
-using System.Reflection;
 
 namespace CSCOInstaller
 {
@@ -217,6 +216,8 @@ namespace CSCOInstaller
             {
                 try
                 {
+                    if(File.Exists(steamDirectory + "/csco/maps/workshop")) File.SetAttributes(steamDirectory + "/csco/maps/workshop", FileAttributes.Normal);
+
                     DeleteDir(steamDirectory + "/csco");
 
                     try
@@ -232,7 +233,7 @@ namespace CSCOInstaller
 
                     if (File.Exists(steamDirectory + "/HostMe.txt")) File.Delete(steamDirectory + "/HostMe.txt");
                     if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/ReadMe.txt");
-                    if (File.Exists(textBoxSteam.Text + "/maps/workshop")) File.Delete(textBoxSteam.Text + "/maps/workshop");
+                    if (File.Exists(steamDirectory + "/csco/maps/workshop")) File.Delete(steamDirectory + "/csco/maps/workshop");
 
                     File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
 
@@ -302,7 +303,11 @@ namespace CSCOInstaller
                 MessageBoxResult result = System.Windows.MessageBox.Show("Downloading in progress. You want to quit?", "Exit",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
-                if (result == MessageBoxResult.Yes) client.CancelAsync();
+                if (result == MessageBoxResult.Yes)
+                {
+                    client.CancelAsync();
+                    DeleteDir(steamDirectory + "/Temp");
+                }
             }
         }
 
@@ -310,13 +315,6 @@ namespace CSCOInstaller
         {
             if (Directory.Exists(path))
             {
-                if (path.Contains("csco"))
-                {
-                    string[] fileCollection = Directory.GetFiles(path);
-
-                    foreach (String file in fileCollection) File.SetAttributes(file, FileAttributes.Normal);
-                }
-
                 System.IO.DirectoryInfo di = new DirectoryInfo(path);
 
                 foreach (FileInfo file in di.GetFiles()) file.Delete();
