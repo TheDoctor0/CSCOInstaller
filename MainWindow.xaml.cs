@@ -18,13 +18,16 @@ namespace CSCOInstaller
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        string versionUrl = "http://cs-reload.pl/csco/version.txt";
+        string[] alphabet = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
+
+        string versionUrl = "http://cs-reload.pl/csco/versions.txt";
         string updateUrl = "";
+        string versionText = "";
         string steamDirectory = "";
 
         double latestVersion = 0.0;
         double installedVersion = 0.0;
-        double localVersion = 1.42;
+        double localVersion = 1.43;
 
         bool downloading = false;
         bool update = false;
@@ -79,30 +82,22 @@ namespace CSCOInstaller
 
             if (versionFile != "NULL")
             {
-                string temp = "";
                 double tempVersion = 0.0;
 
-                foreach (char c in versionFile)
+                foreach (string line in versionFile.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    if (temp.Contains(".zip"))
+                    string[] version = line.Split(new string[] { "ClassicOffensive_Beta", ".zip" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    int letter = ((int)char.ToUpper(version[1][version[1].Length - 1])) - 64;
+
+                    tempVersion = letter > 0 ? Convert.ToDouble(version[1].Replace(alphabet[letter - 1], letter.ToString())) : Convert.ToDouble(version[1]);
+
+                    if (RemoteFileExists(line) && tempVersion > latestVersion)
                     {
-                        if (RemoteFileExists(temp) && tempVersion > latestVersion)
-                        {
-                            updateUrl = temp;
-                            latestVersion = tempVersion;
-                        }
-
-                        temp = "";
-
-                        continue;
+                        updateUrl = line;
+                        latestVersion = tempVersion;
+                        versionText = version[1];
                     }
-                    else if (c == ' ')
-                    {
-                        tempVersion = Convert.ToDouble(temp);
-
-                        temp = "";
-                    }
-                    else temp += c;
                 }
             }
 
@@ -112,9 +107,23 @@ namespace CSCOInstaller
                 {
                     string localVersionFile = File.ReadAllText(steamDirectory + @"\csco\version.txt");
 
-                    installedVersion = Convert.ToDouble(localVersionFile);
+                    int letter = ((int)char.ToUpper(localVersionFile[localVersionFile.Length - 1])) - 64;
 
-                    labelInstalled.Content = installedVersion.ToString("0.00");
+                    installedVersion = letter > 0 ? Convert.ToDouble(localVersionFile.Replace(alphabet[letter - 1], letter.ToString())) : Convert.ToDouble(localVersionFile);
+
+                    string[] version = localVersionFile.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
+
+                    int digit;
+
+                    bool result = Int32.TryParse(version[1][version[1].Length - 1].ToString(), out digit);
+
+                    if (result)
+                    {
+                        labelInstalled.Content = localVersionFile.Replace(version[1][version.Length - 1].ToString(), alphabet[digit - 1]);
+
+                        File.WriteAllText(steamDirectory + @"\csco\version.txt", "" + labelInstalled.Content);
+                    }
+                    else labelInstalled.Content = localVersionFile;
                 }
                 catch (Exception)
                 {
@@ -122,11 +131,11 @@ namespace CSCOInstaller
 
                     if (result == MessageBoxResult.Yes)
                     {
-                        File.WriteAllText(steamDirectory + @"\csco\version.txt", "" + latestVersion);
+                        File.WriteAllText(steamDirectory + @"\csco\version.txt", "" + versionText);
 
                         installedVersion = latestVersion;
 
-                        labelInstalled.Content = installedVersion.ToString("0.00");
+                        labelInstalled.Content = versionText;
                     }
                     else
                     {
@@ -138,7 +147,7 @@ namespace CSCOInstaller
             }
             else labelInstalled.Content = "None";
 
-            labelLatest.Content = latestVersion.ToString("0.00");
+            labelLatest.Content = versionText;
 
             if (updateUrl != "")
             {
@@ -254,7 +263,7 @@ namespace CSCOInstaller
                         File.Delete(steamDirectory + "/csco/maps/workshop");
                     }
 
-                    File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
+                    File.WriteAllText(steamDirectory + "/csco/version.txt", "" + versionText);
 
                     System.IO.DirectoryInfo di = new DirectoryInfo(textBoxSteam.Text + "/userdata");
 
@@ -298,7 +307,7 @@ namespace CSCOInstaller
                     }
                     else button.Content = "Update Complete";
 
-                    labelInstalled.Content = latestVersion.ToString("0.00");
+                    labelInstalled.Content = versionText;
 
                     downloading = false;
                 }
@@ -374,12 +383,12 @@ namespace CSCOInstaller
 
         private bool CheckUpdates()
         {
-            string updateUrl = "https://raw.githubusercontent.com/OZone998/CSCOInstaller/master/version.txt";
+            string updateUrl = "https://raw.githubusercontent.com/OZone998/CSCOInstaller/master/update.txt";
             string updateFile = "NULL";
 
             double updateVersion = 0.0;
 
-            if(File.Exists("updater.bat")) System.Diagnostics.Process.Start("updater.bat");
+            if (File.Exists("updater.bat")) System.Diagnostics.Process.Start("updater.bat");
 
             try
             {
@@ -390,23 +399,13 @@ namespace CSCOInstaller
                 System.Windows.MessageBox.Show("Unable to get version file.\nCheck your internet connection!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            if (updateFile != "NULL")
+            if (RemoteFileExists(updateFile))
             {
-                string temp = "";
+                string[] version = updateFile.Split(new string[] { "https://github.com/OZone998/CSCOInstaller/releases/download/", "/CSCO.Installer.exe" }, StringSplitOptions.RemoveEmptyEntries);
 
-                foreach (char c in updateFile)
-                {
-                    if (c == ' ')
-                    {
-                        updateVersion = Convert.ToDouble(temp);
-
-                        temp = "";
-                    }
-                    else temp += c;
-                }
-
-                updateUrl = temp;
+                updateVersion = Convert.ToDouble(version);
             }
+            else return false;
 
             if (updateVersion > localVersion)
             {
@@ -423,7 +422,7 @@ namespace CSCOInstaller
 
                     updateClient.DownloadFileCompleted += new AsyncCompletedEventHandler(client_UpdateFileCompleted);
                     updateClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_UpdateProgressChanged);
-                    updateClient.DownloadFileAsync(new Uri(updateUrl), file.DirectoryName + "\\" + file.Name);
+                    updateClient.DownloadFileAsync(new Uri(updateFile), file.DirectoryName + "\\" + file.Name);
 
                     labelLatest.Content = updateVersion.ToString("0.00");
                     labelInstalled.Content = localVersion.ToString("0.00");
