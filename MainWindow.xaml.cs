@@ -225,7 +225,13 @@ namespace CSCOInstaller
             {
                 try
                 {
-                    if(File.Exists(steamDirectory + "/csco/maps/workshop")) File.SetAttributes(steamDirectory + "/csco/maps/workshop", FileAttributes.Normal);
+                    if (File.Exists(steamDirectory + "/csco/maps/workshop"))
+                    {
+                        File.SetAttributes(steamDirectory + "/csco/maps/workshop", FileAttributes.Normal);
+                        File.Delete(steamDirectory + "/csco/maps/workshop");
+                    }
+
+                    if (Directory.Exists(steamDirectory + "/csco/maps/workshop")) Directory.Delete(steamDirectory + "/csco/maps/workshop");
 
                     DeleteDir(steamDirectory + "/csco");
 
@@ -242,7 +248,11 @@ namespace CSCOInstaller
 
                     if (File.Exists(steamDirectory + "/HostMe.txt")) File.Delete(steamDirectory + "/HostMe.txt");
                     if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/ReadMe.txt");
-                    if (File.Exists(steamDirectory + "/csco/maps/workshop")) File.Delete(steamDirectory + "/csco/maps/workshop");
+                    if (File.Exists(steamDirectory + "/csco/maps/workshop"))
+                    {
+                        File.SetAttributes(steamDirectory + "/csco/maps/workshop", FileAttributes.Normal);
+                        File.Delete(steamDirectory + "/csco/maps/workshop");
+                    }
 
                     File.WriteAllText(steamDirectory + "/csco/version.txt", "" + latestVersion);
 
@@ -322,6 +332,7 @@ namespace CSCOInstaller
                 if (result == MessageBoxResult.Yes)
                 {
                     client.CancelAsync();
+
                     DeleteDir(steamDirectory + "/Temp");
                 }
             }
