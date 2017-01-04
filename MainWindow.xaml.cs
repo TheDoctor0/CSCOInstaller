@@ -399,11 +399,11 @@ namespace CSCOInstaller
                 System.Windows.MessageBox.Show("Unable to get version file.\nCheck your internet connection!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            if (RemoteFileExists(updateFile))
+            if (updateFile != "NULL")
             {
                 string[] version = updateFile.Split(new string[] { "https://github.com/OZone998/CSCOInstaller/releases/download/", "/CSCO.Installer.exe" }, StringSplitOptions.RemoveEmptyEntries);
 
-                updateVersion = Convert.ToDouble(version);
+                updateVersion = Convert.ToDouble(version[0]);
             }
             else return false;
 
