@@ -10,24 +10,20 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Threading;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace CSCOInstaller
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        string[] alphabet = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
-
-        string versionUrl = "http://cs-reload.pl/csco/versions.txt";
+        string rawRepoUrl = "https://raw.githubusercontent.com/TheDoctor0/CSCOInstaller/master/";
         string updateUrl = "";
         string versionText = "";
         string steamDirectory = "";
 
         double latestVersion = 0.0;
         double installedVersion = 0.0;
-        double localVersion = 1.43;
+        double localVersion = 1.5;
 
         bool downloading = false;
         bool update = false;
@@ -43,7 +39,7 @@ namespace CSCOInstaller
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-GB");
 
-            if (!CheckUpdates())
+            if (!checkUpdates())
             {
                 RegistryKey regKey = Registry.CurrentUser;
 
@@ -56,47 +52,45 @@ namespace CSCOInstaller
                     textBoxSteam.Text = steamPath[0];
                 }
 
-                CheckVersion();
+                checkVersion();
             }
         }
 
-        private void CheckVersion()
+        private void checkVersion()
         {
             latestVersion = 0.0;
             installedVersion = 0.0;
 
             button.IsEnabled = true;
 
-            string versionFile = "NULL";
+            string versionFile = String.Empty;
 
             steamDirectory = textBoxSteam.Text + @"\steamapps\sourcemods";
 
             try
             {
-                using (WebClient client = new WebClient()) versionFile = client.DownloadString(versionUrl);
+                using (WebClient client = new WebClient()) versionFile = client.DownloadString(rawRepoUrl + "version.txt");
             }
             catch (Exception)
             {
                 System.Windows.MessageBox.Show("Unable to get version file.\nCheck your internet connection!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            if (versionFile != "NULL")
+            if (versionFile != String.Empty)
             {
                 double tempVersion = 0.0;
 
                 foreach (string line in versionFile.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    string[] version = line.Split(new string[] { "ClassicOffensive_Beta", ".zip" }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] version = line.Split();
 
-                    int letter = ((int)char.ToUpper(version[1][version[1].Length - 1])) - 64;
+                    tempVersion = Convert.ToDouble(version[0]);
 
-                    tempVersion = letter > 0 ? Convert.ToDouble(version[1].Replace(alphabet[letter - 1], letter.ToString())) : Convert.ToDouble(version[1]);
-
-                    if (RemoteFileExists(line) && tempVersion > latestVersion)
+                    if (remoteFileExists(version[1]) && tempVersion > latestVersion)
                     {
-                        updateUrl = line;
+                        versionText = version[0];
+                        updateUrl = version[1];
                         latestVersion = tempVersion;
-                        versionText = version[1];
                     }
                 }
             }
@@ -107,27 +101,13 @@ namespace CSCOInstaller
                 {
                     string localVersionFile = File.ReadAllText(steamDirectory + @"\csco\version.txt");
 
-                    int letter = ((int)char.ToUpper(localVersionFile[localVersionFile.Length - 1])) - 64;
+                    installedVersion = Convert.ToDouble(Regex.Match(localVersionFile, @"[0-9]+\.[0-9]+").Value);
 
-                    installedVersion = letter > 0 ? Convert.ToDouble(localVersionFile.Replace(alphabet[letter - 1], letter.ToString())) : Convert.ToDouble(localVersionFile);
-
-                    string[] version = localVersionFile.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
-
-                    int digit;
-
-                    bool result = Int32.TryParse(version[1][version[1].Length - 1].ToString(), out digit);
-
-                    if (result)
-                    {
-                        labelInstalled.Content = localVersionFile.Replace(version[1][version.Length - 1].ToString(), alphabet[digit - 1]);
-
-                        File.WriteAllText(steamDirectory + @"\csco\version.txt", "" + labelInstalled.Content);
-                    }
-                    else labelInstalled.Content = localVersionFile;
+                    labelInstalledVersion.Content = installedVersion.ToString();
                 }
                 catch (Exception)
                 {
-                    MessageBoxResult result = System.Windows.MessageBox.Show("CS:CO installed, but version.txt not found.\nDo you have the latest version?", "Version", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    MessageBoxResult result = System.Windows.MessageBox.Show("Classic Offensive installed, but version.txt was not found.\nDo you have the latest version?", "Version", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
                     if (result == MessageBoxResult.Yes)
                     {
@@ -135,23 +115,29 @@ namespace CSCOInstaller
 
                         installedVersion = latestVersion;
 
-                        labelInstalled.Content = versionText;
+                        labelInstalledVersion.Content = versionText;
                     }
                     else
                     {
-                        labelInstalled.Content = "Unknown";
+                        labelInstalledVersion.Content = "Unknown";
 
                         installedVersion = -1.0;
                     }
                 }
             }
-            else labelInstalled.Content = "None";
+            else
+            {
+                labelInstalledVersion.Content = "None";
+            }
 
-            labelLatest.Content = versionText;
+            labelLatestVersion.Content = versionText == String.Empty ? "None" : versionText;
 
             if (updateUrl != "")
             {
-                if (!Directory.Exists(steamDirectory + @"\csco")) button.Content = "Download";
+                if (!Directory.Exists(steamDirectory + @"\csco"))
+                {
+                    button.Content = "Download";
+                }
                 else
                 {
                     if (installedVersion < latestVersion)
@@ -185,7 +171,7 @@ namespace CSCOInstaller
 
                 IProgress<double> progress = new Progress<double>(b => progressBar.Value = (int)b);
 
-                DeleteDir(steamDirectory + @"\Temp");
+                deleteDir(steamDirectory + @"\Temp");
 
                 Directory.CreateDirectory(steamDirectory + @"\Temp");
 
@@ -193,8 +179,8 @@ namespace CSCOInstaller
                 {
                     client = new WebClient();
 
-                    client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
-                    client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
+                    client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(downloadProgressChanged);
+                    client.DownloadFileCompleted += new AsyncCompletedEventHandler(downloadFileCompleted);
                     client.DownloadFileAsync(new Uri(updateUrl), steamDirectory + "/Temp/csco.zip");
 
                     button.Content = "Downloading...";
@@ -216,20 +202,16 @@ namespace CSCOInstaller
             }
         }
 
-        void client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        private void downloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
-            double percentage = double.Parse(e.BytesReceived.ToString()) / double.Parse(e.TotalBytesToReceive.ToString()) * 100;
-
-            if (percentage >= 99.9) button.Content = "Installing...";
-            else button.Content = "Downloading... " + Convert.ToString(Math.Round(percentage)) + "%";
-
-            progressBar.Value = int.Parse(Math.Truncate(percentage).ToString());
-        }
-
-        private void client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
-        {
-            if (e.Error != null) button.Content = "Downloading error!";
-            else if (e.Cancelled) DeleteDir(steamDirectory + "/Temp");
+            if (e.Error != null)
+            {
+                button.Content = "Downloading error!";
+            }
+            else if (e.Cancelled)
+            {
+                deleteDir(steamDirectory + "/Temp");
+            }
             else
             {
                 try
@@ -242,7 +224,7 @@ namespace CSCOInstaller
 
                     if (Directory.Exists(steamDirectory + "/csco/maps/workshop")) Directory.Delete(steamDirectory + "/csco/maps/workshop");
 
-                    DeleteDir(steamDirectory + "/csco");
+                    deleteDir(steamDirectory + "/csco");
 
                     try
                     {
@@ -253,10 +235,11 @@ namespace CSCOInstaller
                         System.Windows.MessageBox.Show(ee.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
 
-                    DeleteDir(steamDirectory + "/Temp");
+                    deleteDir(steamDirectory + "/Temp");
 
                     if (File.Exists(steamDirectory + "/HostMe.txt")) File.Delete(steamDirectory + "/HostMe.txt");
                     if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/ReadMe.txt");
+                    if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/FixedNotes.txt");
                     if (File.Exists(steamDirectory + "/csco/maps/workshop"))
                     {
                         File.SetAttributes(steamDirectory + "/csco/maps/workshop", FileAttributes.Normal);
@@ -299,15 +282,18 @@ namespace CSCOInstaller
                     {
                         foreach (var process in Process.GetProcessesByName("Steam")) process.Kill();
 
-                        System.Windows.MessageBox.Show("Installation complete, now Steam is launching.\nCounter-Strike: Classic Offensive will appear in Library.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        System.Windows.MessageBox.Show("Installation complete, now Steam is launching.\nClassic Offensive will appear in Library.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
 
                         System.Diagnostics.Process.Start(textBoxSteam.Text + "/Steam.exe");
 
                         button.Content = "Installation Complete";
                     }
-                    else button.Content = "Update Complete";
+                    else
+                    {
+                        button.Content = "Update Complete";
+                    }
 
-                    labelInstalled.Content = versionText;
+                    labelInstalledVersion.Content = versionText;
 
                     downloading = false;
                 }
@@ -327,7 +313,8 @@ namespace CSCOInstaller
             if (!string.IsNullOrWhiteSpace(folderBrowser.SelectedPath))
             {
                 textBoxSteam.Text = folderBrowser.SelectedPath;
-                CheckVersion();
+
+                checkVersion();
             }
         }
 
@@ -342,12 +329,12 @@ namespace CSCOInstaller
                 {
                     client.CancelAsync();
 
-                    DeleteDir(steamDirectory + "/Temp");
+                    deleteDir(steamDirectory + "/Temp");
                 }
             }
         }
 
-        public void DeleteDir(string path)
+        public void deleteDir(string path)
         {
             if (Directory.Exists(path))
             {
@@ -361,7 +348,7 @@ namespace CSCOInstaller
             }
         }
 
-        private bool RemoteFileExists(string url)
+        private bool remoteFileExists(string url)
         {
             try
             {
@@ -381,31 +368,30 @@ namespace CSCOInstaller
             }
         }
 
-        private bool CheckUpdates()
+        private bool checkUpdates()
         {
-            string updateUrl = "https://raw.githubusercontent.com/OZone998/CSCOInstaller/master/update.txt";
-            string updateFile = "NULL";
-
-            double updateVersion = 0.0;
+            String updateFile = String.Empty;
+            Double updateVersion = 0.0;
 
             if (File.Exists("updater.bat")) System.Diagnostics.Process.Start("updater.bat");
 
             try
             {
-                using (WebClient client = new WebClient()) updateFile = client.DownloadString(updateUrl);
+                using (WebClient client = new WebClient()) updateFile = client.DownloadString(rawRepoUrl + "update.txt");
             }
             catch (Exception)
             {
                 System.Windows.MessageBox.Show("Unable to get version file.\nCheck your internet connection!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            if (updateFile != "NULL")
+            if (updateFile != String.Empty)
             {
-                string[] version = updateFile.Split(new string[] { "https://github.com/OZone998/CSCOInstaller/releases/download/", "/CSCO.Installer.exe" }, StringSplitOptions.RemoveEmptyEntries);
-
-                updateVersion = Convert.ToDouble(version[0]);
+                updateVersion = Convert.ToDouble(Regex.Match(updateFile, @"[0-9]+\.[0-9]+").Value);
             }
-            else return false;
+            else
+            {
+                return false;
+            }
 
             if (updateVersion > localVersion)
             {
@@ -420,12 +406,12 @@ namespace CSCOInstaller
 
                     WebClient updateClient = new WebClient();
 
-                    updateClient.DownloadFileCompleted += new AsyncCompletedEventHandler(client_UpdateFileCompleted);
-                    updateClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_UpdateProgressChanged);
+                    updateClient.DownloadFileCompleted += new AsyncCompletedEventHandler(downloadUpdateCompleted);
+                    updateClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(downloadProgressChanged);
                     updateClient.DownloadFileAsync(new Uri(updateFile), file.DirectoryName + "\\" + file.Name);
 
-                    labelLatest.Content = updateVersion.ToString("0.00");
-                    labelInstalled.Content = localVersion.ToString("0.00");
+                    labelLatestVersion.Content = updateVersion.ToString("0.00");
+                    labelInstalledVersion.Content = localVersion.ToString("0.00");
 
                     button.Content = "Installer update in progress...";
 
@@ -440,17 +426,7 @@ namespace CSCOInstaller
             return false;
         }
 
-        void client_UpdateProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
-            double percentage = double.Parse(e.BytesReceived.ToString()) / double.Parse(e.TotalBytesToReceive.ToString()) * 100;
-
-            if (percentage >= 99.9) button.Content = "Installing...";
-            else button.Content = "Downloading... " + Convert.ToString(Math.Round(percentage)) + "%";
-
-            progressBar.Value = int.Parse(Math.Truncate(percentage).ToString());
-        }
-
-        private void client_UpdateFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        private void downloadUpdateCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
             System.IO.FileInfo file = new System.IO.FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
@@ -463,6 +439,22 @@ namespace CSCOInstaller
             System.Diagnostics.Process.Start(file.DirectoryName + "/" + file.Name);
 
             System.Windows.Application.Current.Shutdown();
+        }
+
+        void downloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            double percentage = double.Parse(e.BytesReceived.ToString()) / double.Parse(e.TotalBytesToReceive.ToString()) * 100;
+
+            if (percentage >= 99.9)
+            {
+                button.Content = "Installing...";
+            }
+            else
+            {
+                button.Content = "Downloading... " + Convert.ToString(Math.Round(percentage)) + "%";
+            }
+
+            progressBar.Value = int.Parse(Math.Truncate(percentage).ToString());
         }
     }
 }
