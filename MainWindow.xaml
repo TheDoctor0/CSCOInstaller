@@ -3,9 +3,9 @@
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="CSCOInstaller.MainWindow"
-                      Title="CS:CO Installer"
+                      Title="Classic Offensive"
                       Height="263.946"
-                      Width="265.732" Icon="csco.ico" Background="#FFE0E0E0" Closing="Window_Closing" Loaded="Window_Load">
+                      Width="265.732" Icon="csco.ico" Background="#FFE0E0E0" Closing="Window_Closing" Loaded="Window_Load" ResizeMode="NoResize">
     <Grid Margin="0,0,2,0">
         <GroupBox x:Name="groupBox" Header="Version" Margin="9,8,9,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5" Height="58">
             <GroupBox.RenderTransform>
@@ -16,20 +16,22 @@
                     <TranslateTransform/>
                 </TransformGroup>
             </GroupBox.RenderTransform>
-            <Label x:Name="labelInstalled" Content="1.0" HorizontalAlignment="Left" Height="27" Margin="66,-5,0,-3" VerticalAlignment="Top" Width="73" FontFamily="Segoe UI Semibold" FontSize="13.333"/>
         </GroupBox>
         <ProgressBar x:Name="progressBar" Margin="10,187,10,0" VerticalAlignment="Top" Height="24"/>
+
+        <Label x:Name="labelSteam" Content="Steam folder:&#xD;&#xA;" HorizontalAlignment="Left" Margin="10,71,0,0" VerticalAlignment="Top" Height="25" FontSize="13.333" FontFamily="Segoe UI Semibold"/>
         <TextBox x:Name="textBoxSteam" Height="23" Margin="10,96,10,0" TextWrapping="Wrap" Text="C:\Program Files (x86)\Steam" VerticalAlignment="Top" PreviewMouseDown="textBox_Click"/>
+
         <Button x:Name="button" Content="DOWNLOAD" Margin="10,0,10,64" VerticalAlignment="Bottom" Height="29" FontSize="12" Background="#CC42BCF0" BorderBrush="#CC6FC8EE" Click="button_Click">
             <Button.Foreground>
                 <SolidColorBrush Color="#FF212121"/>
             </Button.Foreground>
         </Button>
-        <TextBlock x:Name="textBlock3" Height="15" Margin="148,0,0,2" TextWrapping="Wrap" Text="CS:CO Installer by O'Zone" VerticalAlignment="Bottom" IsEnabled="False" FontSize="9.333" Foreground="#FF636363"/>
-        <Label x:Name="label1" Content="Installed:" HorizontalAlignment="Left" Margin="23,36,0,0" VerticalAlignment="Top" Width="67" Height="27" FontFamily="Segoe UI Semibold" FontSize="13.333"/>
-        <Label x:Name="labelInstalledVersion" Content="Latest:" HorizontalAlignment="Left" Margin="163,36,0,0" VerticalAlignment="Top" Height="25" Width="50" FontFamily="Segoe UI Semibold" FontSize="13.333"/>
-        <Label x:Name="labelLatestVersion" Content="Steam folder:&#xD;&#xA;" HorizontalAlignment="Left" Margin="10,71,0,0" VerticalAlignment="Top" Height="25" FontSize="13.333" FontFamily="Segoe UI Semibold"/>
-        <Label x:Name="labelLatest" Content="1.0" HorizontalAlignment="Left" Margin="205,36,0,0" VerticalAlignment="Top" FontFamily="Segoe UI Semibold" FontWeight="Bold" Width="36" FontSize="13.333"/>
+        <TextBlock x:Name="textBlock3" Height="15" Margin="160,0,0,2" TextWrapping="Wrap" Text="Created by The Doctor" VerticalAlignment="Bottom" IsEnabled="False" FontSize="9.333" Foreground="#FF636363"/>
+        <Label x:Name="labelInstalled" Content="Installed:" HorizontalAlignment="Left" Margin="23,36,0,0" VerticalAlignment="Top" Width="67" Height="27" FontFamily="Segoe UI Semibold" FontSize="13.333"/>
+        <Label x:Name="labelInstalledVersion" Content="1.0" HorizontalAlignment="Left" Height="27" Margin="81,36,0,0" VerticalAlignment="Top" Width="77" FontFamily="Segoe UI Semibold" FontSize="13.333"/>
+        <Label x:Name="labelLatest" Content="Latest:" HorizontalAlignment="Left" Margin="163,36,0,0" VerticalAlignment="Top" Height="25" Width="50" FontFamily="Segoe UI Semibold" FontSize="13.333"/>
+        <Label x:Name="labelLatestVersion" Content="1.0" HorizontalAlignment="Left" Margin="205,36,0,0" VerticalAlignment="Top" FontFamily="Segoe UI Semibold" FontWeight="Bold" Width="36" FontSize="13.333"/>
 
     </Grid>
 </Controls:MetroWindow>
