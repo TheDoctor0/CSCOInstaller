@@ -239,7 +239,7 @@ namespace CSCOInstaller
 
                     if (File.Exists(steamDirectory + "/HostMe.txt")) File.Delete(steamDirectory + "/HostMe.txt");
                     if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/ReadMe.txt");
-                    if (File.Exists(steamDirectory + "/ReadMe.txt")) File.Delete(steamDirectory + "/FixedNotes.txt");
+                    if (File.Exists(steamDirectory + "/FixedNotes.txt")) File.Delete(steamDirectory + "/FixedNotes.txt");
                     if (File.Exists(steamDirectory + "/csco/maps/workshop"))
                     {
                         File.SetAttributes(steamDirectory + "/csco/maps/workshop", FileAttributes.Normal);
