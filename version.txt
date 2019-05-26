@@ -1,1 +1,1 @@
-1.21 https://cs-reload.pl/csco/ClassicOffensive.zip
+1.21 http://csco.5v.pl/ClassicOffensive.zip
