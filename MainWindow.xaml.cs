@@ -23,7 +23,7 @@ namespace CSCOInstaller
 
         double latestVersion = 0.0;
         double installedVersion = 0.0;
-        double localVersion = 1.5;
+        double localVersion = 1.51;
 
         bool downloading = false;
         bool update = false;
